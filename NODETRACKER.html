@@ -1,0 +1,1168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DKMS · KZN Journey 2026</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=Space+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --green: #1d9e75;
+        --green-light: #e1f5ee;
+        --green-dark: #085041;
+        --blue: #378add;
+        --blue-light: #e6f1fb;
+        --blue-dark: #0c447c;
+        --coral: #d85a30;
+        --coral-light: #faece7;
+        --coral-dark: #712b13;
+        --ink: #111110;
+        --ink-mid: #444441;
+        --ink-muted: #888780;
+        --ink-faint: #d3d1c7;
+        --surface: #f7f6f2;
+        --white: #ffffff;
+        --red: #e24b4a;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: "DM Sans", sans-serif;
+        background: var(--surface);
+        color: var(--ink);
+        min-height: 100vh;
+      }
+
+      /* ── HERO ─────────────────────────────────────── */
+      #hero {
+        background: var(--ink);
+        color: var(--white);
+        padding: 3.5rem 2.5rem 2.5rem;
+        position: relative;
+        overflow: hidden;
+      }
+
+      #hero::before {
+        content: "";
+        position: absolute;
+        top: -60px;
+        right: -60px;
+        width: 340px;
+        height: 340px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      #hero::after {
+        content: "";
+        position: absolute;
+        bottom: -40px;
+        left: 180px;
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+      }
+
+      .hero-eyebrow {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 1.25rem;
+      }
+
+      .dkms-badge {
+        background: var(--green);
+        color: var(--white);
+        font-family: "Space Mono", monospace;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        padding: 4px 10px;
+        border-radius: 2px;
+      }
+
+      .hero-eyebrow span {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.45);
+        font-family: "Space Mono", monospace;
+        letter-spacing: 0.06em;
+      }
+
+      #hero h1 {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: clamp(52px, 8vw, 88px);
+        line-height: 0.92;
+        letter-spacing: 0.02em;
+        margin-bottom: 1.25rem;
+        position: relative;
+        z-index: 1;
+      }
+
+      #hero h1 em {
+        font-style: normal;
+        color: var(--green);
+      }
+
+      .hero-desc {
+        font-size: 15px;
+        font-weight: 300;
+        color: rgba(255, 255, 255, 0.65);
+        max-width: 520px;
+        line-height: 1.7;
+        margin-bottom: 2rem;
+        position: relative;
+        z-index: 1;
+      }
+
+      .hero-stats {
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+        position: relative;
+        z-index: 1;
+        padding-top: 1.5rem;
+        border-top: 0.5px solid rgba(255, 255, 255, 0.12);
+      }
+
+      .hero-stat-num {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 36px;
+        line-height: 1;
+        color: var(--white);
+        display: block;
+      }
+
+      .hero-stat-label {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.4);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-top: 3px;
+        display: block;
+      }
+
+      /* ── LEGEND BAR ───────────────────────────────── */
+      #legend-bar {
+        background: var(--white);
+        border-bottom: 0.5px solid var(--ink-faint);
+        padding: 0.75rem 2.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+      }
+
+      .legend-label {
+        font-family: "Space Mono", monospace;
+        font-size: 10px;
+        color: var(--ink-muted);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-right: 4px;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: var(--ink-mid);
+      }
+
+      .legend-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      /* ── MAIN LAYOUT ──────────────────────────────── */
+      #main-layout {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        min-height: 540px;
+      }
+
+      /* ── MAP ──────────────────────────────────────── */
+      #map-wrap {
+        position: relative;
+        height: 540px;
+      }
+
+      #map {
+        width: 100%;
+        height: 100%;
+      }
+
+      /* ── SIDEBAR ──────────────────────────────────── */
+      #sidebar {
+        background: var(--white);
+        border-left: 0.5px solid var(--ink-faint);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .sidebar-tabs {
+        display: flex;
+        border-bottom: 0.5px solid var(--ink-faint);
+      }
+
+      .tab-btn {
+        flex: 1;
+        padding: 11px 0;
+        font-size: 12px;
+        font-weight: 500;
+        font-family: "DM Sans", sans-serif;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--ink-muted);
+        border-bottom: 2px solid transparent;
+        transition: all 0.15s;
+        letter-spacing: 0.02em;
+      }
+
+      .tab-btn.active {
+        color: var(--ink);
+        border-bottom-color: var(--ink);
+      }
+
+      .tab-content {
+        display: none;
+        flex: 1;
+        overflow-y: auto;
+        padding: 1.1rem;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .tab-content.active {
+        display: flex;
+      }
+
+      /* ── FORM ─────────────────────────────────────── */
+      .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .field-label {
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--ink-muted);
+        font-family: "Space Mono", monospace;
+      }
+
+      .field-group input,
+      .field-group select,
+      .field-group textarea {
+        font-family: "DM Sans", sans-serif;
+        font-size: 13px;
+        padding: 8px 10px;
+        border: 0.5px solid var(--ink-faint);
+        border-radius: 6px;
+        background: var(--surface);
+        color: var(--ink);
+        outline: none;
+        transition: border-color 0.15s;
+        width: 100%;
+      }
+
+      .field-group input:focus,
+      .field-group select:focus,
+      .field-group textarea:focus {
+        border-color: var(--ink-mid);
+        background: var(--white);
+      }
+
+      .field-group textarea {
+        resize: none;
+        line-height: 1.5;
+      }
+
+      .row-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      #submit-btn {
+        width: 100%;
+        padding: 10px;
+        background: var(--ink);
+        color: var(--white);
+        border: none;
+        border-radius: 6px;
+        font-family: "DM Sans", sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition:
+          opacity 0.15s,
+          transform 0.1s;
+        margin-top: 4px;
+        letter-spacing: 0.02em;
+      }
+
+      #submit-btn:hover {
+        opacity: 0.82;
+      }
+      #submit-btn:active {
+        transform: scale(0.98);
+      }
+
+      .error-border {
+        border-color: var(--red) !important;
+      }
+
+      .toast {
+        font-size: 12px;
+        color: var(--green-dark);
+        background: var(--green-light);
+        border-radius: 6px;
+        padding: 8px 10px;
+        text-align: center;
+        display: none;
+        font-family: "Space Mono", monospace;
+        letter-spacing: 0.04em;
+      }
+
+      /* ── VISIT CARDS ──────────────────────────────── */
+      .visit-card {
+        border: 0.5px solid var(--ink-faint);
+        border-radius: 8px;
+        padding: 10px 12px;
+        cursor: pointer;
+        transition:
+          border-color 0.15s,
+          background 0.15s;
+        background: var(--white);
+      }
+
+      .visit-card:hover {
+        border-color: var(--ink-mid);
+        background: var(--surface);
+      }
+
+      .vc-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 6px;
+        margin-bottom: 5px;
+      }
+      .vc-name {
+        font-size: 13px;
+        font-weight: 500;
+        line-height: 1.3;
+      }
+      .vc-date {
+        font-family: "Space Mono", monospace;
+        font-size: 10px;
+        color: var(--ink-muted);
+        white-space: nowrap;
+        margin-top: 1px;
+      }
+      .vc-badge {
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        padding: 2px 7px;
+        border-radius: 20px;
+        display: inline-block;
+        margin-bottom: 5px;
+      }
+      .vc-note {
+        font-size: 11px;
+        color: var(--ink-mid);
+        line-height: 1.4;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 4px;
+      }
+      .vc-reach {
+        font-family: "Space Mono", monospace;
+        font-size: 10px;
+        color: var(--ink-muted);
+      }
+
+      /* ── BREAKDOWN ────────────────────────────────── */
+      #breakdown {
+        background: var(--white);
+        border-top: 0.5px solid var(--ink-faint);
+        padding: 2rem 2.5rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 1.5rem;
+      }
+
+      .breakdown-block {
+      }
+
+      .breakdown-title {
+        font-family: "Space Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink-muted);
+        margin-bottom: 1rem;
+      }
+
+      .bar-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 9px;
+      }
+
+      .bar-label {
+        font-size: 12px;
+        color: var(--ink-mid);
+        width: 90px;
+        flex-shrink: 0;
+      }
+      .bar-track {
+        flex: 1;
+        height: 6px;
+        background: var(--surface);
+        border-radius: 3px;
+        overflow: hidden;
+      }
+      .bar-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .bar-count {
+        font-family: "Space Mono", monospace;
+        font-size: 11px;
+        color: var(--ink-muted);
+        width: 24px;
+        text-align: right;
+        flex-shrink: 0;
+      }
+
+      /* ── ABOUT ────────────────────────────────────── */
+      #about {
+        background: var(--surface);
+        border-top: 0.5px solid var(--ink-faint);
+        padding: 2rem 2.5rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        align-items: start;
+      }
+
+      .about-heading {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 32px;
+        letter-spacing: 0.03em;
+        margin-bottom: 0.75rem;
+        line-height: 1;
+      }
+
+      .about-body {
+        font-size: 14px;
+        font-weight: 300;
+        color: var(--ink-mid);
+        line-height: 1.75;
+      }
+
+      .about-body strong {
+        font-weight: 500;
+        color: var(--ink);
+      }
+
+      .about-right {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .about-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 12px;
+        color: var(--ink-mid);
+        background: var(--white);
+        border: 0.5px solid var(--ink-faint);
+        border-radius: 4px;
+        padding: 7px 12px;
+        font-family: "Space Mono", monospace;
+        letter-spacing: 0.03em;
+      }
+
+      .about-tag-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      /* ── FOOTER ───────────────────────────────────── */
+      #footer {
+        background: var(--ink);
+        color: rgba(255, 255, 255, 0.3);
+        padding: 1.25rem 2.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      #footer span {
+        font-family: "Space Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.06em;
+      }
+      #footer a {
+        color: var(--green);
+        text-decoration: none;
+      }
+
+      /* ── LEAFLET CUSTOM ───────────────────────────── */
+      .custom-marker {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .marker-dot {
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        border: 2.5px solid var(--white);
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.22);
+        cursor: pointer;
+        transition: transform 0.15s;
+      }
+      .marker-dot:hover {
+        transform: scale(1.35);
+      }
+
+      .leaflet-popup-content-wrapper {
+        border-radius: 10px !important;
+        padding: 0 !important;
+        overflow: hidden;
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.13) !important;
+        border: 0.5px solid var(--ink-faint) !important;
+      }
+
+      .leaflet-popup-content {
+        margin: 0 !important;
+      }
+      .leaflet-popup-tip-container {
+        display: none;
+      }
+
+      .pc {
+        font-family: "DM Sans", sans-serif;
+        min-width: 215px;
+        max-width: 255px;
+      }
+      .pc-photo {
+        width: 100%;
+        height: 95px;
+        object-fit: cover;
+        display: block;
+      }
+      .pc-placeholder {
+        width: 100%;
+        height: 95px;
+        background: var(--surface);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Space Mono", monospace;
+        font-size: 9px;
+        letter-spacing: 0.08em;
+        color: var(--ink-muted);
+      }
+      .pc-body {
+        padding: 10px 12px 12px;
+      }
+      .pc-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 5px;
+      }
+      .pc-badge {
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        padding: 2px 7px;
+        border-radius: 20px;
+      }
+      .pc-date {
+        font-family: "Space Mono", monospace;
+        font-size: 9px;
+        color: var(--ink-muted);
+      }
+      .pc-name {
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 3px;
+        color: var(--ink);
+      }
+      .pc-note {
+        font-size: 11px;
+        color: var(--ink-mid);
+        line-height: 1.5;
+        margin-bottom: 7px;
+      }
+      .pc-reach {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 11px;
+        color: var(--ink-mid);
+        border-top: 0.5px solid var(--ink-faint);
+        padding-top: 7px;
+      }
+      .pc-reach-num {
+        font-family: "Space Mono", monospace;
+        font-weight: 700;
+        font-size: 13px;
+        color: var(--ink);
+      }
+
+      .empty-state {
+        text-align: center;
+        color: var(--ink-muted);
+        font-size: 12px;
+        padding: 2rem 0;
+        font-family: "Space Mono", monospace;
+      }
+
+      @media (max-width: 760px) {
+        #main-layout {
+          grid-template-columns: 1fr;
+        }
+        #map-wrap {
+          height: 380px;
+        }
+        #sidebar {
+          height: 400px;
+        }
+        #breakdown {
+          grid-template-columns: 1fr;
+        }
+        #about {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- HERO -->
+    <section id="hero">
+      <div class="hero-eyebrow">
+        <span class="dkms-badge">DKMS</span>
+        <span>KwaZulu-Natal · 2026</span>
+      </div>
+      <h1>EVERY NODE<br />IS A <em>LIFE</em><br />CHANGED.</h1>
+      <p class="hero-desc">
+        A living record of DKMS awareness work across the KZN corridor —
+        universities, corporates, running clubs. Each marker is a real visit, a
+        real conversation, a real step toward finding more donors for patients
+        who have no other option.
+      </p>
+      <div class="hero-stats">
+        <div>
+          <span class="hero-stat-num" id="h-visits">0</span>
+          <span class="hero-stat-label">Visits logged</span>
+        </div>
+        <div>
+          <span class="hero-stat-num" id="h-reach">0</span>
+          <span class="hero-stat-label">People reached</span>
+        </div>
+        <div>
+          <span class="hero-stat-num" id="h-locations">0</span>
+          <span class="hero-stat-label">Locations</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- LEGEND BAR -->
+    <div id="legend-bar">
+      <span class="legend-label">Venues —</span>
+      <div class="legend-item">
+        <div class="legend-dot" style="background: #1d9e75"></div>
+        University
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background: #378add"></div>
+        Corporate
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background: #d85a30"></div>
+        Running club
+      </div>
+    </div>
+
+    <!-- MAP + SIDEBAR -->
+    <div id="main-layout">
+      <div id="map-wrap"><div id="map"></div></div>
+
+      <div id="sidebar">
+        <div class="sidebar-tabs">
+          <button class="tab-btn active" onclick="switchTab('log')">
+            Log visit
+          </button>
+          <button class="tab-btn" onclick="switchTab('list')">
+            All visits
+          </button>
+        </div>
+
+        <!-- LOG TAB -->
+        <div id="tab-log" class="tab-content active">
+          <div class="field-group">
+            <label class="field-label">Location name</label>
+            <input
+              type="text"
+              id="f-location"
+              placeholder="e.g. DUT Steve Biko Campus"
+            />
+          </div>
+          <div class="row-2">
+            <div class="field-group">
+              <label class="field-label">Latitude</label>
+              <input type="text" id="f-lat" placeholder="-29.8671" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Longitude</label>
+              <input type="text" id="f-lng" placeholder="30.9802" />
+            </div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Date</label>
+            <input type="date" id="f-date" />
+          </div>
+          <div class="row-2">
+            <div class="field-group">
+              <label class="field-label">Category</label>
+              <select id="f-category">
+                <option value="university">University</option>
+                <option value="corporate">Corporate</option>
+                <option value="running_club">Running club</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Campaign</label>
+              <select id="f-campaign">
+                <option value="registration">Registration</option>
+                <option value="education">Education</option>
+                <option value="both">Both</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">People reached</label>
+            <input type="number" id="f-reached" placeholder="0" min="0" />
+          </div>
+          <div class="field-group">
+            <label class="field-label">Note</label>
+            <textarea
+              id="f-note"
+              rows="3"
+              placeholder="What happened at this visit?"
+            ></textarea>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Photo URL (Cloudinary)</label>
+            <input
+              type="text"
+              id="f-photo"
+              placeholder="https://res.cloudinary.com/..."
+            />
+          </div>
+          <button id="submit-btn" onclick="submitVisit()">Add to map</button>
+          <div class="toast" id="toast">✓ Visit logged</div>
+        </div>
+
+        <!-- LIST TAB -->
+        <div id="tab-list" class="tab-content">
+          <div id="visit-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BREAKDOWN CHARTS -->
+    <section id="breakdown">
+      <div class="breakdown-block">
+        <div class="breakdown-title">By venue type</div>
+        <div id="chart-category"></div>
+      </div>
+      <div class="breakdown-block">
+        <div class="breakdown-title">By campaign type</div>
+        <div id="chart-campaign"></div>
+      </div>
+      <div class="breakdown-block">
+        <div class="breakdown-title">People reached by venue</div>
+        <div id="chart-reach"></div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about">
+      <div class="about-left">
+        <div class="about-heading">ABOUT THIS PROJECT</div>
+        <p class="about-body">
+          This map is a personal documentation of volunteer awareness work with
+          <strong>DKMS</strong> — the world's largest stem cell donor
+          organisation — across the KwaZulu-Natal corridor during my 2026 gap
+          year.<br /><br />
+          Each node represents a real visit: a campus table, a boardroom
+          session, a pre-race briefing. The goal is simple —
+          <strong>more registered donors means more lives saved</strong>. This
+          tool tracks that journey in real time, turning ground-level effort
+          into visible, shareable impact.
+        </p>
+      </div>
+      <div class="about-right">
+        <div class="about-tag">
+          <div class="about-tag-dot" style="background: #1d9e75"></div>
+          UKZN · DUT · MUT and more
+        </div>
+        <div class="about-tag">
+          <div class="about-tag-dot" style="background: #378add"></div>
+          Durban · Richards Bay · Empangeni · Port Shepstone
+        </div>
+        <div class="about-tag">
+          <div class="about-tag-dot" style="background: #d85a30"></div>
+          Parkruns · Club events · Community races
+        </div>
+        <div class="about-tag" style="border-color: #1d9e75; color: #085041">
+          Built with Leaflet.js · Vanilla JS · localStorage
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer id="footer">
+      <span
+        >DKMS · KZN Journey 2026 ·
+        <a href="https://www.dkms-africa.org" target="_blank"
+          >dkms-africa.org</a
+        ></span
+      >
+      <span>Built by LangelihleIT · github.com/LangelihleIT</span>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+      const SEED = [
+        {
+          id: "v001",
+          location: "UKZN Howard College",
+          coordinates: [-29.8671, 30.9802],
+          date: "2026-03-08",
+          category: "university",
+          campaign_type: "registration",
+          note: "Tabled at the student hub during orientation week. Strong response from health sciences students.",
+          people_reached: 34,
+          photo_url: null,
+        },
+        {
+          id: "v002",
+          location: "Hollard Insurance, Umhlanga",
+          coordinates: [-29.7253, 31.0742],
+          date: "2026-03-19",
+          category: "corporate",
+          campaign_type: "education",
+          note: "Lunch-hour awareness session with HR. 20 staff attended, solid engagement on the registration process.",
+          people_reached: 20,
+          photo_url: null,
+        },
+        {
+          id: "v003",
+          location: "Durban Striders Running Club",
+          coordinates: [-29.8774, 31.0292],
+          date: "2026-04-05",
+          category: "running_club",
+          campaign_type: "both",
+          note: "Pre-race briefing at the Saturday parkrun. Handed out registration kits, spoke for 5 mins before the start.",
+          people_reached: 33,
+          photo_url: null,
+        },
+      ];
+
+      const COLORS = {
+        university: { dot: "#1D9E75", bg: "#E1F5EE", text: "#085041" },
+        corporate: { dot: "#378ADD", bg: "#E6F1FB", text: "#0C447C" },
+        running_club: { dot: "#D85A30", bg: "#FAECE7", text: "#712B13" },
+      };
+
+      const CAT_LABELS = {
+        university: "University",
+        corporate: "Corporate",
+        running_club: "Running club",
+      };
+      const CAMP_LABELS = {
+        registration: "Registration",
+        education: "Education",
+        both: "Both",
+      };
+
+      function formatDate(d) {
+        const [y, m, day] = d.split("-");
+        return `${parseInt(day)} ${["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][parseInt(m) - 1]} ${y}`;
+      }
+
+      function load() {
+        try {
+          const s = localStorage.getItem("dkms_v1");
+          return s ? JSON.parse(s) : [...SEED];
+        } catch (e) {
+          return [...SEED];
+        }
+      }
+
+      function save(v) {
+        try {
+          localStorage.setItem("dkms_v1", JSON.stringify(v));
+        } catch (e) {}
+      }
+
+      let visits = load();
+      if (!visits.length) {
+        visits = [...SEED];
+        save(visits);
+      }
+
+      // MAP
+      const map = L.map("map", {
+        center: [-29.85, 31.02],
+        zoom: 11,
+        zoomControl: true,
+        scrollWheelZoom: false,
+      });
+      L.tileLayer(
+        "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+        {
+          attribution: "&copy; OpenStreetMap &copy; CARTO",
+          subdomains: "abcd",
+          maxZoom: 19,
+        },
+      ).addTo(map);
+
+      const markers = L.layerGroup().addTo(map);
+
+      function popup(v) {
+        const c = COLORS[v.category];
+        const photo = v.photo_url
+          ? `<img class="pc-photo" src="${v.photo_url}" alt="${v.location}">`
+          : `<div class="pc-placeholder">NO PHOTO YET</div>`;
+        return `<div class="pc">${photo}<div class="pc-body"><div class="pc-meta"><span class="pc-badge" style="background:${c.bg};color:${c.text};">${CAT_LABELS[v.category]}</span><span class="pc-date">${formatDate(v.date)}</span></div><div class="pc-name">${v.location}</div><div class="pc-note">${v.note}</div><div class="pc-reach"><span class="pc-reach-num">${v.people_reached}</span><span> people reached · ${CAMP_LABELS[v.campaign_type]}</span></div></div></div>`;
+      }
+
+      function renderMarkers() {
+        markers.clearLayers();
+        visits.forEach((v) => {
+          const c = COLORS[v.category];
+          const icon = L.divIcon({
+            className: "custom-marker",
+            html: `<div class="marker-dot" style="background:${c.dot};"></div>`,
+            iconSize: [16, 16],
+            iconAnchor: [8, 8],
+            popupAnchor: [0, -10],
+          });
+          L.marker(v.coordinates, { icon })
+            .addTo(markers)
+            .bindPopup(popup(v), { maxWidth: 270 });
+        });
+      }
+
+      function renderList() {
+        const el = document.getElementById("visit-list");
+        if (!visits.length) {
+          el.innerHTML = '<div class="empty-state">No visits yet.</div>';
+          return;
+        }
+        el.innerHTML = [...visits]
+          .reverse()
+          .map((v) => {
+            const c = COLORS[v.category];
+            return `<div class="visit-card" onclick="focusOn(${v.coordinates[0]},${v.coordinates[1]})">
+      <div class="vc-top"><span class="vc-name">${v.location}</span><span class="vc-date">${formatDate(v.date)}</span></div>
+      <span class="vc-badge" style="background:${c.bg};color:${c.text};">${CAT_LABELS[v.category]}</span>
+      <div class="vc-note">${v.note}</div>
+      <div class="vc-reach">${v.people_reached} people reached</div>
+    </div>`;
+          })
+          .join("");
+      }
+
+      function renderCharts() {
+        const catCount = { university: 0, corporate: 0, running_club: 0 };
+        const campCount = { registration: 0, education: 0, both: 0 };
+        const catReach = { university: 0, corporate: 0, running_club: 0 };
+
+        visits.forEach((v) => {
+          catCount[v.category]++;
+          campCount[v.campaign_type]++;
+          catReach[v.category] += v.people_reached;
+        });
+
+        const total = visits.length || 1;
+        const maxReach = Math.max(...Object.values(catReach), 1);
+
+        function bars(data, colors, maxVal) {
+          return Object.entries(data)
+            .map(([key, val]) => {
+              const pct = Math.round((val / maxVal) * 100);
+              const label = CAT_LABELS[key] || CAMP_LABELS[key] || key;
+              const color = colors[key] || "#888";
+              return `<div class="bar-row">
+        <span class="bar-label">${label}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color};"></div></div>
+        <span class="bar-count">${val}</span>
+      </div>`;
+            })
+            .join("");
+        }
+
+        document.getElementById("chart-category").innerHTML = bars(
+          catCount,
+          {
+            university: "#1D9E75",
+            corporate: "#378ADD",
+            running_club: "#D85A30",
+          },
+          total,
+        );
+        document.getElementById("chart-campaign").innerHTML = bars(
+          campCount,
+          { registration: "#1D9E75", education: "#378ADD", both: "#D85A30" },
+          total,
+        );
+        document.getElementById("chart-reach").innerHTML = bars(
+          catReach,
+          {
+            university: "#1D9E75",
+            corporate: "#378ADD",
+            running_club: "#D85A30",
+          },
+          maxReach,
+        );
+      }
+
+      function updateHero() {
+        const total = visits.reduce((s, v) => s + v.people_reached, 0);
+        document.getElementById("h-visits").textContent = visits.length;
+        document.getElementById("h-reach").textContent = total;
+        document.getElementById("h-locations").textContent = new Set(
+          visits.map((v) => v.location),
+        ).size;
+      }
+
+      function focusOn(lat, lng) {
+        map.setView([lat, lng], 14, { animate: true });
+        switchTab("log");
+      }
+
+      function switchTab(tab) {
+        document
+          .querySelectorAll(".tab-btn")
+          .forEach((b, i) =>
+            b.classList.toggle(
+              "active",
+              (i === 0 && tab === "log") || (i === 1 && tab === "list"),
+            ),
+          );
+        document
+          .getElementById("tab-log")
+          .classList.toggle("active", tab === "log");
+        document
+          .getElementById("tab-list")
+          .classList.toggle("active", tab === "list");
+        if (tab === "list") renderList();
+      }
+
+      function submitVisit() {
+        const loc = document.getElementById("f-location").value.trim();
+        const lat = parseFloat(document.getElementById("f-lat").value);
+        const lng = parseFloat(document.getElementById("f-lng").value);
+        const date = document.getElementById("f-date").value;
+        const cat = document.getElementById("f-category").value;
+        const camp = document.getElementById("f-campaign").value;
+        const reached =
+          parseInt(document.getElementById("f-reached").value) || 0;
+        const note = document.getElementById("f-note").value.trim();
+        const photo = document.getElementById("f-photo").value.trim() || null;
+
+        const ids = ["f-location", "f-lat", "f-lng", "f-date"];
+        const vals = [loc, !isNaN(lat), !isNaN(lng), date];
+        ids.forEach((id, i) =>
+          document
+            .getElementById(id)
+            .classList.toggle("error-border", !vals[i]),
+        );
+        if (!loc || isNaN(lat) || isNaN(lng) || !date) return;
+        ids.forEach((id) =>
+          document.getElementById(id).classList.remove("error-border"),
+        );
+
+        visits.push({
+          id: "v" + Date.now(),
+          location: loc,
+          coordinates: [lat, lng],
+          date,
+          category: cat,
+          campaign_type: camp,
+          people_reached: reached,
+          note,
+          photo_url: photo,
+        });
+        save(visits);
+        renderMarkers();
+        renderCharts();
+        updateHero();
+        map.setView([lat, lng], 13, { animate: true });
+
+        ["f-location", "f-lat", "f-lng", "f-note", "f-photo"].forEach(
+          (id) => (document.getElementById(id).value = ""),
+        );
+        document.getElementById("f-reached").value = "";
+        document.getElementById("f-date").valueAsDate = new Date();
+
+        const t = document.getElementById("toast");
+        t.style.display = "block";
+        setTimeout(() => (t.style.display = "none"), 2000);
+      }
+
+      document.getElementById("f-date").valueAsDate = new Date();
+      renderMarkers();
+      renderCharts();
+      updateHero();
+    </script>
+  </body>
+</html>
