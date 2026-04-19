@@ -23,32 +23,25 @@
       }
 
       :root {
-        /* PRIMARY BRAND */
-        --primary:         #e2001a;
-        --primary-variant: #d70c24;
-        --primary-soft:    #f9ccd1;
-        --primary-dark:    #8c0010;
- 
-        /* NEUTRALS */
-        --background:      #f4f4f9;
-        --surface:         #ffffff;
-        --text-primary:    #282832;
-        --text-secondary:  rgba(0,0,0,0.57);
-        --border:          rgba(0,0,0,0.12);
-        --border-strong:   rgba(0,0,0,0.22);
-        --muted:           rgba(0,0,0,0.38);
- 
-        /* ACCENTS (controlled) */
-        --success:   #30783e;
-        --success-bg:#e8f5eb;
-        --info:      #2c5a82;
-        --info-bg:   #e4edf5;
-        --warm:      #c45c1a;
-        --warm-bg:   #faeee6;
- 
-        /* HERO */
-        --hero-bg:   #1a0508;
-      }      html {
+        --green: #c00a0a;
+        --green-light: #e1f5ee;
+        --green-dark: #085041;
+        --blue: #378add;
+        --blue-light: #e3cccc;
+        --blue-dark: #0c447c;
+        --coral: #d85a30;
+        --coral-light: #f7b2b2;
+        --coral-dark: #712b13;
+        --ink: #9f9c9c;
+        --ink-mid: #444441;
+        --ink-muted: #888780;
+        --ink-faint: #d3d1c7;
+        --surface: #f0ebeb;
+        --white: #000000;
+        --red: #fc4949;
+      }
+
+      html {
         scroll-behavior: smooth;
       }
 
@@ -61,7 +54,7 @@
 
       /* ── HERO ─────────────────────────────────────── */
       #hero {
-        background: var(--ink);
+        background: rgb(250, 250, 252);
         color: var(--white);
         padding: 3.5rem 2.5rem 2.5rem;
         position: relative;
@@ -110,7 +103,7 @@
 
       .hero-eyebrow span {
         font-size: 12px;
-        color: rgba(255, 255, 255, 0.45);
+        color: rgba(48, 47, 47, 0.45);
         font-family: "Space Mono", monospace;
         letter-spacing: 0.06em;
       }
@@ -133,7 +126,7 @@
       .hero-desc {
         font-size: 15px;
         font-weight: 300;
-        color: rgba(255, 255, 255, 0.65);
+        color: rgb(0, 0, 0);
         max-width: 520px;
         line-height: 1.7;
         margin-bottom: 2rem;
@@ -148,7 +141,7 @@
         position: relative;
         z-index: 1;
         padding-top: 1.5rem;
-        border-top: 0.5px solid rgba(255, 255, 255, 0.12);
+        border-top: 0.5px solid blue;
       }
 
       .hero-stat-num {
@@ -161,7 +154,7 @@
 
       .hero-stat-label {
         font-size: 11px;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--white);
         letter-spacing: 0.06em;
         text-transform: uppercase;
         margin-top: 3px;
@@ -252,7 +245,7 @@
 
       .tab-btn.active {
         color: var(--ink);
-        border-bottom-color: var(--ink);
+        border-bottom-color: grey;
       }
 
       .tab-content {
